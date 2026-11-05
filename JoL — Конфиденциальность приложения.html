@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>JoL — Конфиденциальность приложения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@900&amp;text=JoL&amp;display=swap">
+<style>
+/* Layout: one 52rem document column under a sticky row of section anchors. Tables are hairline frames;
+   the policy draft gets its own sheet, because that text alone goes on the site. */
+:root {
+  color-scheme: light;
+
+  /* JoL tokens, same values as jol-admin/src/app/globals.css */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eeeef0;
+  --surface-hover: #f4f4f6;
+  --cta: #000000;
+  --on-cta: #ffffff;
+  --text: #000000;
+  --text-2: #63676e;
+  --accent: #276ef1;
+  --accent-ink: #1d5fd6;
+  --border: #e4e5e8;
+  --warn: #a35f00;
+  --warn-soft: #fff4e0;
+  --warn-ink: #a35f00;
+  --selection: #cfe0fd;
+  --logo-client: #0b0b0b;
+
+  --font: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Unbounded", "Golos Text", sans-serif;
+
+  --column: 52rem;
+  --gutter: 16px;
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14'/%3E%3Cpath d='m12 5 7 7-7 7'/%3E%3C/svg%3E");
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #000000;
+    --surface: #141518;
+    --surface-2: #26282d;
+    --surface-hover: #1c1d21;
+    --cta: #ffffff;
+    --on-cta: #000000;
+    --text: #ffffff;
+    --text-2: #9ba0a8;
+    --accent: #4c8dff;
+    --accent-ink: #86b3ff;
+    --border: #2c2f35;
+    --warn: #ffb224;
+    --warn-soft: #33270f;
+    --warn-ink: #ffb224;
+    --selection: #1f3a6b;
+    --logo-client: #ffffff;
+  }
+}
+
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #000000;
+    --surface: #141518;
+    --surface-2: #26282d;
+    --surface-hover: #1c1d21;
+    --cta: #ffffff;
+    --on-cta: #000000;
+    --text: #ffffff;
+    --text-2: #9ba0a8;
+    --accent: #4c8dff;
+    --accent-ink: #86b3ff;
+    --border: #2c2f35;
+    --warn: #ffb224;
+    --warn-soft: #33270f;
+    --warn-ink: #ffb224;
+    --selection: #1f3a6b;
+    --logo-client: #ffffff;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root { --gutter: 32px; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-padding-top: 4rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 .9375rem/1.375rem var(--font);
+  overflow-wrap: break-word;
+}
+
+::selection { background: var(--selection); }
+
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+h1 { font-size: 1.75rem; line-height: 2.125rem; font-weight: 700; letter-spacing: -.015em; }
+h2, h3 { font-size: 1.375rem; line-height: 1.75rem; font-weight: 700; letter-spacing: -.01em; }
+h4 { font-size: inherit; line-height: inherit; font-weight: 600; }
+p { margin: 0; max-width: 70ch; text-wrap: pretty; }
+strong { font-weight: 600; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* Text to fill in */
+.ph {
+  margin-inline: -.12em;
+  padding-inline: .12em;
+  border-radius: 4px;
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Golos Text has no arrow glyph: the → stays in the text for copying and is drawn over */
+.arrow {
+  display: inline-block;
+  width: .95em;
+  height: .95em;
+  margin-inline: .1em;
+  vertical-align: -.12em;
+  overflow: hidden;
+  color: transparent;
+  background: var(--text-2);
+  -webkit-mask: var(--arrow) center / contain no-repeat;
+  mask: var(--arrow) center / contain no-repeat;
+}
+
+/* Section anchors */
+.anchors {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.anchors__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(var(--column) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: 8px var(--gutter);
+}
+
+.brand {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.brand:hover { color: var(--text); text-decoration: none; }
+.mark { display: block; }
+.mark__client { fill: var(--logo-client); }
+.wordmark { font: 900 1.1875rem/1 var(--font-brand); letter-spacing: -.02em; }
+.wordmark__o { color: #276ef1; }
+
+.anchors__links {
+  display: flex;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+.anchors__links::-webkit-scrollbar { display: none; }
+
+.anchors__links a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: .8125rem;
+  line-height: 1.125rem;
+  white-space: nowrap;
+}
+.anchors__links a:hover { background: var(--surface-2); color: var(--text); text-decoration: none; }
+.anchors__links a:focus-visible { outline-offset: -2px; border-radius: 999px; }
+
+/* Document */
+main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  max-width: calc(var(--column) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding: 24px var(--gutter) 64px;
+}
+
+.opening { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.head { display: grid; gap: 6px; }
+.lead { color: var(--text-2); }
+.meta { max-width: none; color: var(--text-2); font-size: .8125rem; line-height: 1.125rem; font-variant-numeric: tabular-nums; }
+
+.alert {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--warn-soft);
+}
+.alert__icon { display: block; width: 20px; height: 20px; margin-top: 1px; color: var(--warn); }
+.alert__text { display: grid; gap: 6px; min-width: 0; }
+.alert__text p { max-width: none; }
+
+.part { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+
+.steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.steps > li {
+  position: relative;
+  padding-left: 36px;
+  counter-increment: step;
+}
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  top: -1px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: .75rem;
+  line-height: 1;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.panel__title { font-weight: 600; }
+
+.facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 0; }
+.facts dt { margin-bottom: 4px; color: var(--text-2); font-size: .75rem; line-height: 1rem; }
+.facts dd { margin: 0; }
+
+/* Tables */
+.frame {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.t { width: 100%; border-collapse: separate; border-spacing: 0; }
+.t th, .t td { font-weight: 400; text-align: left; vertical-align: top; }
+.t thead th { color: var(--text-2); font-size: .75rem; line-height: 1rem; font-weight: 500; }
+.term { display: block; font-weight: 500; }
+.en { display: block; margin-top: 2px; color: var(--text-2); font-size: .75rem; line-height: 1rem; }
+.group .term { display: inline; font-weight: 600; }
+.group .en { display: inline; margin: 0 0 0 6px; }
+.qno { display: inline-block; width: 1.75em; color: var(--text-2); font-variant-numeric: tabular-nums; text-indent: 0; }
+.who-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.who {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: .75rem;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+.who--you { background: var(--cta); color: var(--on-cta); font-weight: 500; }
+tr:target > * { background: var(--surface-2); }
+
+@media (min-width: 640px) {
+  .facts { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 24px; }
+  .facts > div { display: grid; grid-row: span 2; grid-template-rows: subgrid; }
+
+  .t th, .t td { padding: 12px; border-top: 1px solid var(--border); }
+  .t tr > :first-child { padding-left: 16px; }
+  .t tr > :last-child { padding-right: 16px; }
+  .t thead th { padding-block: 10px; border-top: 0; }
+  .t .group th { padding-block: 8px; background: var(--surface-hover); }
+  .t tr > .q:first-child { padding-left: calc(16px + 1.75em); text-indent: -1.75em; }
+  .t--pairs thead th:first-child { width: 38%; }
+  .t--asks thead th:nth-child(1) { width: 47%; }
+  .t--asks thead th:nth-child(2) { width: 8.25rem; }
+}
+
+@media (max-width: 639px) {
+  .t, .t tbody, .t tr, .t th, .t td { display: block; }
+  .t thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .t tbody tr { padding: 12px 16px; border-top: 1px solid var(--border); }
+  .t tbody:first-of-type tr:first-child { border-top: 0; }
+  .t tbody .group { padding-block: 8px; background: var(--surface-hover); }
+  .t td { margin-top: 4px; }
+  .t .q { padding-left: 1.75em; text-indent: -1.75em; }
+  .t td[data-label] { margin-top: 10px; }
+  .t td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-2);
+    font-size: .75rem;
+    line-height: 1rem;
+  }
+  .t td:has(.who-list) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .t td:has(.who-list)::before { margin-bottom: 0; }
+}
+
+/* The policy draft */
+.note { display: grid; gap: 2px; }
+
+.sheet {
+  --hang: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.sheet__head { display: grid; gap: 6px; }
+.sheet__date { color: var(--text-2); font-size: .8125rem; line-height: 1.125rem; }
+
+.clause { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.clause > h4 { display: flex; gap: .5rem; }
+.clause:target > h4 { color: var(--accent-ink); }
+.cno { flex: none; min-width: var(--hang); font-variant-numeric: tabular-nums; }
+.clause > :not(h4) { margin-inline-start: calc(var(--hang) + .5rem); }
+.clause ul { display: grid; gap: 4px; margin-block: 0; padding-left: 1.1em; max-width: 70ch; }
+.clause li::marker { color: var(--text-2); }
+
+@media (min-width: 640px) {
+  .sheet { padding: 32px; }
+}
+
+@media (max-width: 639px) {
+  .sheet { --hang: 0; }
+  .clause > :not(h4) { margin-inline-start: 0; }
+  .wordmark { display: none; }
+}
+
+@media print {
+  .anchors { display: none; }
+  main { max-width: none; padding: 0; }
+  a { color: inherit; }
+  .frame { overflow: visible; }
+  tr, .clause, .alert, .panel { break-inside: avoid; }
+  h2, h3, h4 { break-after: avoid; }
+  .ph, .alert, .who, .arrow, .group th, .steps > li::before {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<nav class="anchors" aria-label="Разделы документа">
+  <div class="anchors__row">
+    <a class="brand" href="#top" aria-label="JoL, к началу документа">
+      <svg class="mark" width="28" height="28" viewBox="30 30 180 180" aria-hidden="true">
+        <path class="mark__client" d="M120 30C144.85 30 165 50.15 165 75C165 91.76 155.833 106.38 142.241 114.124C139.644 104.268 130.672 97 120 97C107.297 97 97 107.297 97 120C97 122.031 97.2638 124 97.7578 125.875C84.1663 133.619 75 148.24 75 165C75 189.85 95.15 210 120 210C70.3 210 30 169.7 30 120C30 70.3 70.3 30 120 30ZM120 109C125.622 109 130.256 113.219 130.916 118.663C127.781 119.444 124.517 119.9 121.161 119.985L118.839 120.015C115.483 120.1 112.218 120.554 109.083 121.336C109.03 120.898 109 120.452 109 120C109 113.925 113.925 109 120 109Z"/>
+        <path fill="#276EF1" d="M120 30C169.7 30 210 70.3 210 120C210 169.7 169.7 210 120 210C95.15 210 75 189.85 75 165C75 148.24 84.1663 133.619 97.7578 125.875C100.354 135.731 109.328 143 120 143C132.703 143 143 132.703 143 120C143 117.969 142.735 116 142.241 114.124C155.833 106.38 165 91.76 165 75C165 50.15 144.85 30 120 30ZM130.916 118.663C130.969 119.101 131 119.547 131 120C131 126.075 126.075 131 120 131C114.377 131 109.742 126.781 109.083 121.336C112.218 120.554 115.483 120.1 118.839 120.015L121.161 119.985C124.517 119.9 127.781 119.444 130.916 118.663Z"/>
+      </svg>
+      <span class="wordmark" aria-hidden="true">J<span class="wordmark__o">o</span>L</span>
+    </a>
+    <ul class="anchors__links" role="list">
+      <li><a href="#s1">1. Что сделать</a></li>
+      <li><a href="#s2">2. Что отметить</a></li>
+      <li><a href="#s3">3. Что не отмечать</a></li>
+      <li><a href="#s4">4. Что уточнить</a></li>
+      <li><a href="#s5">5. Политика</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+
+  <div class="opening">
+    <header class="head" id="top">
+      <h1>Конфиденциальность приложения — JoL</h1>
+      <p class="lead">Что отметить в App Store Connect и черновик политики конфиденциальности</p>
+      <p class="meta">Приложение 1.0.0 (8) · 13 октября 2026 · составлено по коду приложения и описанию API сервера</p>
+    </header>
+
+    <aside class="alert">
+      <svg class="alert__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>
+        <path d="M12 9v4"/>
+        <path d="M12 17h.01"/>
+      </svg>
+      <div class="alert__text">
+        <p><strong>До отправки на проверку: в приложении нет ссылки на политику конфиденциальности</strong></p>
+        <p>Apple требует ссылку на политику и в карточке App Store, и внутри приложения (правило 5.1.1).</p>
+        <p>На экране входа слова «оферту» и «условия сервиса» выглядят как ссылки, но никуда не ведут.</p>
+        <p>Когда у политики появится адрес, ссылку нужно добавить в приложение: в текст на экране входа и в «Помощь».</p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="part" id="s1" aria-labelledby="s1-title">
+    <h2 id="s1-title">1. Что сделать в App Store Connect</h2>
+    <ol class="steps" role="list">
+      <li>Разместите текст политики (<a href="#s5">раздел 5</a>) на постоянной странице сайта, например <mark class="ph">[https://домен/privacy]</mark>.</li>
+      <li>«Конфиденциальность приложения» <span class="arrow">→</span> «Политика конфиденциальности» <span class="arrow">→</span> вставьте этот адрес.</li>
+      <li>«Сбор данных» <span class="arrow">→</span> «Начать» <span class="arrow">→</span> «Да, мы собираем данные из этого приложения».</li>
+      <li>Отметьте типы данных из <a href="#s2">раздела 2</a> и ответьте на вопросы по каждому так, как написано ниже.</li>
+      <li>Нажмите «Опубликовать».</li>
+    </ol>
+  </section>
+
+  <section class="part" id="s2" aria-labelledby="s2-title">
+    <h2 id="s2-title">2. Какие данные отметить</h2>
+
+    <div class="panel">
+      <p class="panel__title">Для каждого отмеченного типа ответы одинаковые</p>
+      <dl class="facts">
+        <div>
+          <dt>Цель</dt>
+          <dd><strong>«Функциональность приложения»</strong> (App Functionality). Другие цели не отмечать.</dd>
+        </div>
+        <div>
+          <dt>Связаны ли данные с личностью пользователя</dt>
+          <dd><strong>Да</strong> — всё хранится в аккаунте, вход по номеру телефона.</dd>
+        </div>
+        <div>
+          <dt>Используются ли данные для отслеживания</dt>
+          <dd><strong>Нет.</strong></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="frame">
+      <table class="t t--pairs" aria-labelledby="s2-title">
+        <thead>
+          <tr>
+            <th scope="col">Тип данных в App Store Connect</th>
+            <th scope="col">Что это в JoL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group"><th colspan="2" scope="rowgroup"><span class="term">Контактная информация</span> <span class="en" lang="en">Contact Info</span></th></tr>
+          <tr>
+            <th scope="row"><span class="term">Имя</span> <span class="en" lang="en">Name</span></th>
+            <td>Имя в профиле. Его видят другие пользователи на доске заявок и в чатах.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Номер телефона</span> <span class="en" lang="en">Phone Number</span></th>
+            <td>Вход по коду из SMS. Номер видит только вторая сторона по заявке: тот, кто откликнулся, кому позвонили или написали, собеседник в чате. В лентах номеров нет.</td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th colspan="2" scope="rowgroup"><span class="term">Пользовательский контент</span> <span class="en" lang="en">User Content</span></th></tr>
+          <tr>
+            <th scope="row"><span class="term">Электронные письма или текстовые сообщения</span> <span class="en" lang="en">Emails or Text Messages</span></th>
+            <td>Сообщения в чатах, текст отклика, шаблон автоотклика водителя.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Фото или видео</span> <span class="en" lang="en">Photos or Videos</span></th>
+            <td>Фото в чате: с камеры или из галереи, до 10 в сообщении. Видео нет.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Аудиоданные</span> <span class="en" lang="en">Audio Data</span></th>
+            <td>Голосовые сообщения в чате, до 10 минут.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Другой пользовательский контент</span> <span class="en" lang="en">Other User Content</span></th>
+            <td>Заявки клиента и водителя: маршрут, даты, груз, цена, комментарий. Машины водителя: вид, оси, тоннаж, объём, длина, температурный режим, госномер, модель. Направления водителя для уведомлений.</td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th colspan="2" scope="rowgroup"><span class="term">Идентификаторы</span> <span class="en" lang="en">Identifiers</span></th></tr>
+          <tr>
+            <th scope="row"><span class="term">Идентификатор пользователя</span> <span class="en" lang="en">User ID</span></th>
+            <td>Номер аккаунта на сервере JoL.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Идентификатор устройства</span> <span class="en" lang="en">Device ID</span></th>
+            <td>Номер установки приложения и токен push-уведомлений (Firebase Cloud Messaging от Google).</td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th colspan="2" scope="rowgroup"><span class="term">Другие данные</span> <span class="en" lang="en">Other Data</span></th></tr>
+          <tr>
+            <th scope="row"><span class="term">Другие типы данных</span> <span class="en" lang="en">Other Data Types</span></th>
+            <td>Город в профиле, язык приложения, часовой пояс телефона (чтобы не присылать уведомления с 22:00 до 08:00), платформа: iOS или Android.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>В карточке App Store это будет выглядеть так: «Данные, связанные с вами» — контактная информация, пользовательский контент, идентификаторы, другие данные. Блока «Данные, используемые для отслеживания» не будет.</p>
+  </section>
+
+  <section class="part" id="s3" aria-labelledby="s3-title">
+    <h2 id="s3-title">3. Что не отмечать</h2>
+
+    <div class="frame">
+      <table class="t t--pairs" aria-labelledby="s3-title">
+        <thead>
+          <tr>
+            <th scope="col">Раздел</th>
+            <th scope="col">Почему не отмечаем</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row"><span class="term">Местоположение</span> <span class="en" lang="en">Location</span></th>
+            <td>Геолокацию телефона приложение не запрашивает. «Мой город» берётся из профиля.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Контакты</span> <span class="en" lang="en">Contacts</span></th>
+            <td>Адресную книгу не читаем. «Пригласить друга» открывает системное окно «Поделиться».</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Финансовая информация, Покупки</span> <span class="en" lang="en">Financial Info, Purchases</span></th>
+            <td>Оплаты в версии 1.0.0 нет. Когда появятся подписка или «Поднять заявку», ответы нужно обновить.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Данные об использовании, Диагностика</span> <span class="en" lang="en">Usage Data, Diagnostics</span></th>
+            <td>Аналитики и сбора сбоев нет: Firebase Analytics, Crashlytics и подобные не подключены. Журнал запросов хранится только на телефоне и в сборке для App Store выключен.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Электронная почта, Физический адрес</span> <span class="en" lang="en">Email Address, Physical Address</span></th>
+            <td>Не спрашиваем.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Обращения в службу поддержки</span> <span class="en" lang="en">Customer Support</span></th>
+            <td>Поддержка работает во внешних мессенджерах (WhatsApp, Telegram, WeChat). Приложение эту переписку не получает.</td>
+          </tr>
+          <tr id="search-history">
+            <th scope="row"><span class="term">История поиска</span> <span class="en" lang="en">Search History</span></th>
+            <td>Поиск в лентах уходит на сервер. Не отмечаем, если сервер запросы не хранит. Если хранит в журналах — отметить (<a href="#q1">вопрос 1 в разделе 4</a>).</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Остальное</span> <span class="en" lang="en">Health, Sensitive Info, Browsing History, Surroundings, Body, Gameplay</span></th>
+            <td>Не собираем.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="term">Отслеживание</span> <span class="en" lang="en">Tracking</span></th>
+            <td>Рекламы нет, рекламный идентификатор (IDFA) не используется, данные брокерам не передаются. Запрос App Tracking Transparency не нужен.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="part" id="s4" aria-labelledby="s4-title">
+    <h2 id="s4-title">4. Что уточнить до отправки</h2>
+
+    <div class="frame">
+      <table class="t t--asks" aria-labelledby="s4-title">
+        <thead>
+          <tr>
+            <th scope="col">Что уточнить</th>
+            <th scope="col">У кого</th>
+            <th scope="col">Для чего</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="q1">
+            <th scope="row" class="q"><span class="qno">1.</span>Хранит ли сервер поисковые запросы из лент (параметр q) в журналах и сколько?</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">бэкенд</span></div></td>
+            <td data-label="Для чего">Если хранит — отметить <a href="#search-history">«История поиска»</a>.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">2.</span>Где стоят боевой сервер и база: страна, хостинг? Dev-сервер — hoster.kz, Казахстан.</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">бэкенд</span></div></td>
+            <td data-label="Для чего"><a href="#p6">Пункт 6 политики</a>; закон РК требует хранить данные граждан Казахстана на серверах в стране.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">3.</span>Сколько хранятся данные и журналы сервера; что остаётся после удаления аккаунта: сообщения, фото, голосовые?</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">бэкенд</span></div></td>
+            <td data-label="Для чего"><a href="#p7">Пункт 7 политики</a>.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">4.</span>Какой SMS-провайдер отправляет коды входа?</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">бэкенд</span></div></td>
+            <td data-label="Для чего"><a href="#p5">Пункт 5 политики</a>.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">5.</span>Будет ли включён автоперевод сообщений и каким сервисом? Сейчас на сервере он выключен.</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">бэкенд</span> <span class="who who--you">вы</span></div></td>
+            <td data-label="Для чего">Если включат — тексты сообщений уходят сервису перевода; дописать в политику.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">6.</span>Кто оператор данных: название компании, БИН, адрес, email для обращений?</th>
+            <td data-label="У кого"><div class="who-list"><span class="who who--you">вы</span></div></td>
+            <td data-label="Для чего">Пункты <a href="#p1">1</a> и <a href="#p13">13</a> политики.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">7.</span>Проверка политики на соответствие Закону РК «О персональных данных и их защите» и законам других стран, где работает сервис.</th>
+            <td data-label="У кого"><div class="who-list"><span class="who">юрист</span></div></td>
+            <td data-label="Для чего">Политика должна быть точной до публикации.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">8.</span>Адрес страницы политики (домен).</th>
+            <td data-label="У кого"><div class="who-list"><span class="who who--you">вы</span></div></td>
+            <td data-label="Для чего">URL для App Store Connect и ссылка в приложении.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">9.</span>Тексты оферты и условий сервиса, их адреса.</th>
+            <td data-label="У кого"><div class="who-list"><span class="who who--you">вы</span> <span class="who">юрист</span></div></td>
+            <td data-label="Для чего">Сейчас эти ссылки на экране входа никуда не ведут.</td>
+          </tr>
+          <tr>
+            <th scope="row" class="q"><span class="qno">10.</span>С какого возраста можно пользоваться сервисом?</th>
+            <td data-label="У кого"><div class="who-list"><span class="who who--you">вы</span></div></td>
+            <td data-label="Для чего"><a href="#p10">Пункт 10 политики</a>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Ответы для Google Play («Безопасность данных») — те же: данные собираются для работы приложения, связаны с аккаунтом, не передаются для рекламы; удаление аккаунта есть в приложении.</p>
+  </section>
+
+  <section class="part" id="s5" aria-labelledby="s5-title">
+    <h2 id="s5-title">5. Политика конфиденциальности (черновик)</h2>
+
+    <div class="note">
+      <p><strong>Как пользоваться черновиком</strong></p>
+      <p>Текст в <mark class="ph">[квадратных скобках]</mark> нужно заполнить.</p>
+      <p>Перед публикацией черновик должен проверить юрист.</p>
+    </div>
+
+    <article class="sheet" aria-labelledby="policy-title">
+      <header class="sheet__head">
+        <h3 id="policy-title">Политика конфиденциальности сервиса JoL</h3>
+        <p class="sheet__date">Дата вступления в силу: <mark class="ph">[дата]</mark></p>
+      </header>
+
+      <section class="clause" id="p1">
+        <h4><span class="cno">1.</span>Кто обрабатывает данные</h4>
+        <p>Сервис JoL (мобильное приложение «JoL» для iOS и Android) предоставляет <mark class="ph">[полное название компании]</mark>, БИН <mark class="ph">[номер]</mark>, адрес: <mark class="ph">[адрес]</mark> (далее — «мы»). Вопросы о персональных данных: <mark class="ph">[email]</mark>.</p>
+      </section>
+
+      <section class="clause" id="p2">
+        <h4><span class="cno">2.</span>Какие данные мы получаем</h4>
+        <ul>
+          <li>Номер телефона — для входа по коду из SMS.</li>
+          <li>Имя и город, которые вы указали в профиле.</li>
+          <li>Данные о машинах водителя: вид, оси, тоннаж, объём, длина, температурный режим, госномер, модель.</li>
+          <li>Заявки и отклики: маршрут, даты, параметры груза, цена, комментарии; направления водителя; шаблон автоотклика.</li>
+          <li>Сообщения в чатах: текст, фото, голосовые сообщения.</li>
+          <li>Технические данные: идентификатор установки приложения, токен push-уведомлений, платформа (iOS или Android), язык приложения, часовой пояс телефона.</li>
+          <li><mark class="ph">[Журналы сервера: какие запросы и сколько хранятся — уточнить.]</mark></li>
+        </ul>
+        <p>Мы не получаем геолокацию телефона, адресную книгу, рекламные идентификаторы и платёжные данные: оплаты в приложении нет. <mark class="ph">[Обновить пункт, когда появится оплата.]</mark></p>
+      </section>
+
+      <section class="clause" id="p3">
+        <h4><span class="cno">3.</span>Зачем мы используем данные</h4>
+        <ul>
+          <li>Вход и защита аккаунта.</li>
+          <li>Работа доски заявок: публикация заявок, отклики, подбор подходящих заявок и машин по их параметрам.</li>
+          <li>Связь клиента и водителя: чат и звонок.</li>
+          <li>Уведомления о новых откликах, сообщениях и подходящих заявках. Часовой пояс нужен, чтобы не присылать их ночью.</li>
+          <li>Предупреждения о возможном мошенничестве, например о просьбе внести предоплату.</li>
+          <li>Ответы на обращения пользователей.</li>
+        </ul>
+        <p>Мы не продаём данные, не показываем рекламу и не используем данные для отслеживания пользователей в других приложениях и на сайтах.</p>
+      </section>
+
+      <section class="clause" id="p4">
+        <h4><span class="cno">4.</span>Кто видит ваши данные</h4>
+        <ul>
+          <li>Другие пользователи JoL видят ваши заявки, имя и данные машины на доске заявок.</li>
+          <li>Номер телефона видит только вторая сторона по заявке. Клиент видит номер водителя, который откликнулся, пока отклик действует или выбран. Водитель видит номер клиента, на чью заявку откликнулся. Номер водителя из ленты «Фуры» клиент получает, нажав «Позвонить». Собеседник в чате видит ваш номер, пока в чат можно писать. В лентах заявок номеров нет.</li>
+        </ul>
+      </section>
+
+      <section class="clause" id="p5">
+        <h4><span class="cno">5.</span>Кому мы передаём данные</h4>
+        <ul>
+          <li>Хостинг-провайдеру, на чьих серверах работает JoL: <mark class="ph">[название, страна]</mark>.</li>
+          <li>SMS-провайдеру, который доставляет код входа: <mark class="ph">[название]</mark>. Он получает номер телефона и текст SMS.</li>
+          <li>Google (Firebase Cloud Messaging), который доставляет push-уведомления. Он получает идентификатор установки, токен и текст уведомления.</li>
+          <li><mark class="ph">[Сервису машинного перевода, если включён автоперевод сообщений: он получает тексты сообщений.]</mark></li>
+          <li>Государственным органам — только когда этого требует закон.</li>
+        </ul>
+      </section>
+
+      <section class="clause" id="p6">
+        <h4><span class="cno">6.</span>Где хранятся данные</h4>
+        <p>Данные хранятся на серверах <mark class="ph">[в Республике Казахстан — уточнить]</mark>.</p>
+        <p>На телефоне данные входа лежат в защищённом хранилище системы (Keychain на iOS, Keystore на Android). Черновики заявок и настройки (тема, язык) хранятся в приложении; черновики стираются при выходе из аккаунта.</p>
+      </section>
+
+      <section class="clause" id="p7">
+        <h4><span class="cno">7.</span>Сколько мы храним данные и как удалить аккаунт</h4>
+        <p>Данные хранятся, пока существует аккаунт <mark class="ph">[и ещё N дней после удаления — уточнить сроки, в том числе журналов сервера]</mark>.</p>
+        <p>Удалить аккаунт можно в приложении: «Профиль» <span class="arrow">→</span> «Удалить аккаунт». После удаления ваши заявки удаляются, отклики отзываются, вход на всех устройствах завершается; номер, имя, машины, направления и устройства стираются. В истории сделок второй стороны вы остаётесь как удалённый аккаунт — без имени и номера. <mark class="ph">[Что происходит с сообщениями, фото и голосовыми в чатах — уточнить.]</mark></p>
+      </section>
+
+      <section class="clause" id="p8">
+        <h4><span class="cno">8.</span>Разрешения на телефоне</h4>
+        <p>Камеру, фото и микрофон приложение запрашивает только когда вы прикрепляете фото или записываете голосовое сообщение. Уведомления — только с вашего согласия. Любое разрешение можно отозвать в настройках телефона.</p>
+      </section>
+
+      <section class="clause" id="p9">
+        <h4><span class="cno">9.</span>Безопасность</h4>
+        <p>Данные передаются по защищённому соединению (HTTPS и WSS). Вход в аккаунт — по одноразовому коду из SMS.</p>
+      </section>
+
+      <section class="clause" id="p10">
+        <h4><span class="cno">10.</span>Дети</h4>
+        <p>Сервис предназначен для <mark class="ph">[лиц старше 18 лет — уточнить]</mark>. Мы сознательно не собираем данные детей.</p>
+      </section>
+
+      <section class="clause" id="p11">
+        <h4><span class="cno">11.</span>Ваши права</h4>
+        <p>Вы можете узнать, какие ваши данные мы храним, исправить их, удалить аккаунт или отозвать согласие на обработку. Напишите на <mark class="ph">[email]</mark> — ответим в течение <mark class="ph">[N]</mark> дней. <mark class="ph">[Ссылки на нормы Закона РК «О персональных данных и их защите» — по рекомендации юриста.]</mark></p>
+      </section>
+
+      <section class="clause" id="p12">
+        <h4><span class="cno">12.</span>Изменения политики</h4>
+        <p>Мы можем менять эту политику. Новая версия публикуется на этой странице с датой вступления в силу; о существенных изменениях сообщим в приложении.</p>
+      </section>
+
+      <section class="clause" id="p13">
+        <h4><span class="cno">13.</span>Контакты</h4>
+        <p><mark class="ph">[Полное название компании]</mark>, <mark class="ph">[адрес]</mark>, <mark class="ph">[email]</mark>.</p>
+      </section>
+    </article>
+  </section>
+
+</main>
+
+</body>
+</html>
